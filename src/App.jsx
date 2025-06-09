@@ -14,14 +14,18 @@ import {
 function App() {
   const [showModal, setShowModal] = useState(false);
   const [weights, setWeights] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const chartData = weights.map((w) => ({
-    date: new Date(w.Date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "numeric",
-    }),
+  // Select the last 10 entries for the chart
+  const lastTenWeights = weights.slice(-10);
 
-    weight: w.Weight,
+  const chartData = lastTenWeights.map((w) => ({
+ date: new Date(w.Date).toLocaleDateString("en-GB", {
+ day: "numeric",
+ month: "numeric",
+ }),
+
+ weight: w.Weight,
   }));
 
   useEffect(() => {
@@ -44,6 +48,30 @@ function App() {
       minute: "2-digit",
       hour12: false,
     });
+  };
+
+  // Group weights by month and year
+  const groupedWeights = weights.reduce((acc, weight) => {
+    const date = new Date(weight.Date);
+    const monthYear = date.toLocaleString("en-GB", {
+      year: "numeric",
+      month: "long",
+    });
+    if (!acc[monthYear]) {
+      acc[monthYear] = [];
+    }
+    acc[monthYear].push(weight);
+    return acc;
+  }, {});
+
+  const months = Object.keys(groupedWeights).sort(
+    (a, b) => new Date(b) - new Date(a)
+  );
+  const currentMonth = months[currentPage];
+  const weightsForCurrentMonth = groupedWeights[currentMonth] || [];
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1));
   };
   
   return (
@@ -111,41 +139,50 @@ function App() {
         + Add
       </button>
 
-      {weights
-        .slice()
-        .reverse()
-        .map((w, index) => {
-          const isLatest = index === 0; // Latest is now the first item after reversing
-          const previousWeight =
-            index < weights.length - 1
-              ? weights[weights.length - index - 2].Weight
-              : null;
+      <div className="mt-6">
+        <h2 className="text-lg font-bold mb-2 text-center">{currentMonth}</h2>
+        {weightsForCurrentMonth.map((w, index) => {
+          // Find the previous weight within the *entire* weights array
+          const allWeightsIndex = weights.findIndex(entry => entry.id === w.id);
+          const previousWeightEntry = allWeightsIndex > 0 ? weights[allWeightsIndex - 1] : null;
+          const previousWeight = previousWeightEntry ? previousWeightEntry.Weight : null;
+
+          // Check if this is the latest entry overall to apply specific styling
+          const isLatestOverall = w.id === weights[weights.length - 1]?.id;
+
           const weightColor =
-            isLatest && previousWeight !== null
+            isLatestOverall && previousWeight !== null
               ? w.Weight > previousWeight
                 ? "text-red-500"
-                : "text-green-500"
+                : w.Weight < previousWeight
+                ? "text-green-500"
+                : "text-white"
               : "text-white";
-
           return (
             <div
               key={w.id}
               className={`mt-3 p-3 rounded-lg ${
-                isLatest ? "bg-gray-900" : "bg-gray-800"
+                isLatestOverall ? "bg-gray-900" : "bg-gray-800"
               } text-white`}
             >
               <p
                 className={`text-lg font-semibold ${
-                  isLatest ? weightColor : ""
+                  isLatestOverall ? weightColor : ""
                 }`}
               >
                 {w.Weight} kg
               </p>
               <p className="text-sm text-gray-400">{formatDate(w.Date)}</p>
               {w.Details && <p className="text-sm mt-1">{w.Details}</p>}
+
             </div>
           );
         })}
+        <div className="flex justify-between mt-4">
+          <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={() => setCurrentPage(prev => prev + 1)} disabled={currentPage === months.length - 1}>Previous Month</button>
+          <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={handleNextPage} disabled={currentPage === 0}>Next Month</button>
+        </div>
+      </div>
 
       {showModal && (
         <AddWeightModal
