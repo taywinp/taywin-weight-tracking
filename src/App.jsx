@@ -72,7 +72,7 @@ function App() {
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
-  };
+ };
   
   return (
     <div className="min-h-screen bg-black text-white p-4 mx-auto font-sans">
@@ -179,8 +179,8 @@ function App() {
           );
         })}
         <div className="flex justify-between mt-4">
-          <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={() => setCurrentPage(prev => prev + 1)} disabled={currentPage === months.length - 1}>Previous Month</button>
-          <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={handleNextPage} disabled={currentPage === 0}>Next Month</button>
+ <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={handleNextPage} disabled={currentPage === months.length - 1}>Previous Month</button>
+ <button className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50" onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))} disabled={currentPage === 0}>Next Month</button>
         </div>
       </div>
 
