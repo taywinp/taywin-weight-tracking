@@ -21,18 +21,22 @@ export async function fetchWeights() {
 }
 
 // ➕ เพิ่มรายการ (create)
-export async function addWeightEntry({ weight, date, note }) {
+export async function addWeightEntry({ weight, date, note, exercise }) {
+  const fields = {
+    Weight: weight,
+    Details: note || "",
+    Date: new Date(date).toISOString(),
+  };
+  if (typeof exercise === 'boolean') {
+    fields.Exercise = exercise;
+  }
   const res = await fetch(API_URL, {
     method: "POST",
     headers,
     body: JSON.stringify({
       records: [
         {
-          fields: {
-            Weight: weight,
-            Details: note || "",
-            Date: new Date(date).toISOString(),
-          },
+          fields
         },
       ],
     }),
