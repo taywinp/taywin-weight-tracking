@@ -111,9 +111,15 @@ function App() {
                     const diff = latest - previous;
                     const isIncrease = diff > 0;
                     return (
-                      <span className={`inline-flex items-center gap-1 ${isIncrease ? 'text-red-400' : 'text-green-400'}`}>
-                        {isIncrease ? '↗' : '↘'} {Math.abs(diff).toFixed(1)}kg from last entry
-                      </span>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span>Latest: <span className="text-white font-medium">{latest}kg</span></span>
+                          <span>Previous: <span className="text-white font-medium">{previous}kg</span></span>
+                        </div>
+                        <span className={`inline-flex items-center gap-1 ${isIncrease ? 'text-red-400' : 'text-green-400'}`}>
+                          {isIncrease ? '↗' : '↘'} {Math.abs(diff).toFixed(1)}kg from last entry
+                        </span>
+                      </div>
                     );
                   })()}
                 </>

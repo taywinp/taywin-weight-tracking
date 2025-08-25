@@ -1,85 +1,106 @@
-const BASE_ID = "appMxIp8icT3ChL8V"
-const TABLE_NAME = "2025"
-const API_TOKEN = "patuzLLG6WyRYBFUu.e0b1e42ec82722a482ac77543e94c97eabc1cf55206eb46f656a934cb07402df"
-const API_URL = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}`
+import { createClient } from '@supabase/supabase-js'
+import './types.js'
 
-const headers = {
-  Authorization: `Bearer ${API_TOKEN}`,
-  "Content-Type": "application/json",
-}
+const supabaseUrl = 'https://bduvbthlqywpqhtaiznj.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkdXZidGhscXl3cHFodGFpem5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NzY3NDYsImV4cCI6MjA3MTQ1Mjc0Nn0.1RfS0ILToYixyoqhgAYXIe1g_jd7Py25EOuhVfrEHOM'
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // 📥 ดึงข้อมูลทั้งหมด (list)
 export async function fetchWeights() {
-  const res = await fetch(`${API_URL}?sort[0][field]=Date&sort[0][direction]=asc`, {
-    headers,
-  })
-  const data = await res.json()
-  return data.records.map(record => ({
+  const { data, error } = await supabase
+    .from('Pantagon_Weight')
+    .select('*')
+    .order('recorded_at', { ascending: true })
+  
+  if (error) {
+    throw new Error(`Error fetching weights: ${error.message}`)
+  }
+  
+  return data.map(record => ({
     id: record.id,
-    ...record.fields,
+    Weight: record.weight_kg,
+    Date: record.recorded_at,
+    Details: record.details || "",
+    Exercise: record.exercised || false,
   }))
 }
 
 // ➕ เพิ่มรายการ (create)
 export async function addWeightEntry({ weight, date, note, exercise }) {
-  const fields = {
-    Weight: weight,
-    Details: note || "",
-    Date: new Date(date).toISOString(),
-  };
-  if (typeof exercise === 'boolean') {
-    fields.Exercise = exercise;
-  }
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      records: [
-        {
-          fields
-        },
-      ],
-    }),
-  })
-  const data = await res.json()
-  return {
-    id: data.records[0].id,
-    ...data.records[0].fields,
+  try {
+    const insertData = {
+      weight_kg: parseFloat(weight),
+      recorded_at: new Date(date).toISOString(),
+      details: note || null,
+      exercised: typeof exercise === 'boolean' ? exercise : false,
+    }
+    
+    console.log('Inserting data:', insertData)
+    
+    const { data, error } = await supabase
+      .from('Pantagon_Weight')
+      .insert([insertData])
+      .select()
+    
+    if (error) {
+      console.error('Supabase error:', error)
+      throw new Error(`Error adding weight entry: ${error.message}`)
+    }
+    
+    if (!data || data.length === 0) {
+      throw new Error('No data returned from insert operation')
+    }
+    
+    const record = data[0]
+    return {
+      id: record.id,
+      Weight: record.weight_kg,
+      Date: record.recorded_at,
+      Details: record.details || "",
+      Exercise: record.exercised || false,
+    }
+  } catch (err) {
+    console.error('Error in addWeightEntry:', err)
+    throw err
   }
 }
 
 // ✏️ แก้ไขรายการ (update)
 export async function updateWeightEntry({ id, weight, date, note }) {
-  const res = await fetch(API_URL, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({
-      records: [
-        {
-          id,
-          fields: {
-            Weight: weight,
-            Details: note || "",
-            Date: new Date(date).toISOString(),
-          },
-        },
-      ],
-    }),
-  })
-  const data = await res.json()
+  const { data, error } = await supabase
+    .from('Pantagon_Weight')
+    .update({
+      weight_kg: weight,
+      recorded_at: new Date(date).toISOString(),
+      details: note || "",
+    })
+    .eq('id', id)
+    .select()
+  
+  if (error) {
+    throw new Error(`Error updating weight entry: ${error.message}`)
+  }
+  
+  const record = data[0]
   return {
-    id: data.records[0].id,
-    ...data.records[0].fields,
+    id: record.id,
+    Weight: record.weight_kg,
+    Date: record.recorded_at,
+    Details: record.details || "",
+    Exercise: record.exercised || false,
   }
 }
 
 // ❌ ลบรายการ (delete)
 export async function deleteWeightEntry(id) {
-  const url = `${API_URL}?records[]=${id}`
-  const res = await fetch(url, {
-    method: "DELETE",
-    headers,
-  })
-  const data = await res.json()
-  return data.records[0].deleted === true
+  const { error } = await supabase
+    .from('Pantagon_Weight')
+    .delete()
+    .eq('id', id)
+  
+  if (error) {
+    throw new Error(`Error deleting weight entry: ${error.message}`)
+  }
+  
+  return true
 }
