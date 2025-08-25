@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import './types.js'
 
-const supabaseUrl = 'https://bduvbthlqywpqhtaiznj.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkdXZidGhscXl3cHFodGFpem5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4NzY3NDYsImV4cCI6MjA3MTQ1Mjc0Nn0.1RfS0ILToYixyoqhgAYXIe1g_jd7Py25EOuhVfrEHOM'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables. Please check your .env file.')
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // 📥 ดึงข้อมูลทั้งหมด (list)
