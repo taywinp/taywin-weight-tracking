@@ -89,7 +89,7 @@ function App() {
         {/* Header */}
         <div className="text-center mb-8 pt-4">
           <h1 className="text-2xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
-            Pantagon Weight Tracking
+            Taywin Weight Tracking
           </h1>
           {weights.length > 0 && (
             <div className="text-sm text-gray-400">

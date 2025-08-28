@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 // 📥 ดึงข้อมูลทั้งหมด (list)
 export async function fetchWeights() {
   const { data, error } = await supabase
-    .from('Pantagon_Weight')
+    .from('taywin_weight')
     .select('*')
     .order('recorded_at', { ascending: true })
   
@@ -43,7 +43,7 @@ export async function addWeightEntry({ weight, date, note, exercise }) {
     console.log('Inserting data:', insertData)
     
     const { data, error } = await supabase
-      .from('Pantagon_Weight')
+      .from('taywin_weight')
       .insert([insertData])
       .select()
     
@@ -73,7 +73,7 @@ export async function addWeightEntry({ weight, date, note, exercise }) {
 // ✏️ แก้ไขรายการ (update)
 export async function updateWeightEntry({ id, weight, date, note }) {
   const { data, error } = await supabase
-    .from('Pantagon_Weight')
+    .from('taywin_weight')
     .update({
       weight_kg: weight,
       recorded_at: new Date(date).toISOString(),
@@ -99,7 +99,7 @@ export async function updateWeightEntry({ id, weight, date, note }) {
 // ❌ ลบรายการ (delete)
 export async function deleteWeightEntry(id) {
   const { error } = await supabase
-    .from('Pantagon_Weight')
+    .from('taywin_weight')
     .delete()
     .eq('id', id)
   
